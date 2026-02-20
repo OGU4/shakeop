@@ -1,0 +1,136 @@
+# CLAUDE.md — shakeop
+
+## プロジェクト概要
+
+Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレーターアプリ。
+ゲーム画面を解析して Wave情報・ノルマ・オオモノ出現・潮位等を音声＋GUIで通知する。
+
+## 最重要ドキュメント
+
+**作業を始める前に必ず読むこと:**
+
+1. **DEVELOPMENT.md** — 開発方法論（ミニアプリ駆動開発のルール）
+2. **DESIGN.md** — アーキテクチャ設計、認識パイプライン詳細
+
+## 開発の鉄則
+
+```
+★ 実装の前に必ず管理番号を発行し、要求仕様書と機能設計書を書く。
+★ 新機能は必ず experiments/ にミニアプリとして作る。いきなり src/ に書かない。
+★ ミニアプリは shared/salmon_types/ の共通型（Protocol/dataclass）を使う。
+★ 精度・速度が基準を満たしたら統合チェックリストに沿って src/ に移植する。
+★ ミニアプリは統合後も削除しない（回帰テスト・比較実験用に残す）。
+```
+
+## 技術スタック
+
+- Python 3.11+ / uv
+- PySide6 (GUI + 音声再生)
+- OpenCV + ONNX Runtime (認識)
+- pHash (数字・固定テキスト認識) — 汎用OCR不使用
+- QSoundEffect (音声)
+- ライセンス: MIT
+
+## 環境セットアップ
+
+```bash
+uv sync
+```
+
+## 実行
+
+```bash
+# メインアプリ
+uv run python -m salmon_buddy
+
+# ミニアプリ（例: exp_002）
+uv run python experiments/exp_002_scene_classify/main.py --camera 0 --debug
+```
+
+## テスト
+
+```bash
+uv run pytest tests/unit/         # ユニットテスト
+uv run pytest tests/integration/  # 統合テスト
+uv run pytest                     # 全部
+```
+
+## コーディング規約
+
+```bash
+uv run ruff format src/ shared/ experiments/ tests/
+uv run ruff check src/ shared/ experiments/ tests/
+uv run mypy --strict src/ shared/
+```
+
+## リポジトリ構成
+
+```
+salmon-buddy/
+├── CLAUDE.md          # ← このファイル
+├── DEVELOPMENT.md     # 開発方法論（ミニアプリ駆動開発のルール）
+├── DESIGN.md          # アーキテクチャ設計
+├── src/salmon_buddy/  # メインアプリ
+├── shared/salmon_types/ # 共通の型定義（Protocol, dataclass, Enum）
+├── experiments/       # ミニアプリ群（exp_NNN_description/）
+├── docs/issues/       # 管理番号別ドキュメント（要求仕様書・機能設計書）
+├── models/            # ONNXモデル（gitignore）
+├── assets/            # 音声・アイコン・テンプレート画像
+├── data/              # 学習データ・テストfixture
+├── tests/             # unit/ と integration/
+└── tools/             # ユーティリティスクリプト
+```
+
+## 開発の進め方（必ずこの順序で）
+
+```
+1. 管理番号を発行      → docs/issues/index.md に追記
+2. 要求仕様書を書く    → docs/issues/F-NNN_xxx/requirements.md
+3. 機能設計書を書く    → docs/issues/F-NNN_xxx/design.md
+4. ミニアプリで実装    → experiments/exp_NNN_xxx/
+5. テスト・検証        → ミニアプリREADMEに結果記録
+6. メインアプリに統合  → src/salmon_buddy/
+7. ステータス更新      → docs/issues/index.md を「✅ 完了」に
+```
+
+管理番号: `F-NNN`（機能）/ `B-NNN`（バグ）
+
+## ミニアプリの作り方
+
+1. `experiments/exp_NNN_description/` を作成
+2. `main.py`（--camera / --image / --debug 対応）と `README.md` を置く
+3. `shared/salmon_types/` の Protocol と dataclass を import して使う
+4. 結果を README.md に記録する
+5. テンプレートは DEVELOPMENT.md のセクション3を参照
+
+## 統合の手順
+
+1. ミニアプリの README に結果記録済みを確認
+2. Protocol 準拠を mypy で確認
+3. ハードコード → config引数、print → logging、cv2.imshow → 削除
+4. tests/unit/ にテスト追加
+5. docs/integration_log.md に記録
+6. 詳細チェックリストは DEVELOPMENT.md のセクション5を参照
+
+## コミットメッセージ
+
+```
+[F-NNN] 機能の仕様・設計・実装
+[B-NNN] バグ修正
+[exp:NNN] ミニアプリ関連
+[integrate] 統合作業
+[app] メインアプリ（軽微な変更）
+[shared] 共有コード
+[test] テスト
+[docs] ドキュメント
+```
+
+## 重要な設計判断
+
+- 認識パイプラインは5段構成: Scene分類 → Object検出 → Digit認識(pHash) → Text識別(pHash) → Feature Match
+- 数字・固定テキスト認識にはpHash（パーセプチュアルハッシュ）を使用
+  - 汎用OCRはゲーム画面（独自フォント・動く背景・透過・斜め配置）に不向きと判明済み
+- ゲーム状態はFSMで管理、Qt Signal/Slot でGUI/音声に伝播
+- すべてのROI座標はFHD (1920x1080) 基準
+- ONNXモデルはCPU推論前提（GPU不要）
+- 詳細は DESIGN.md を参照
