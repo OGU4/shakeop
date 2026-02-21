@@ -43,8 +43,12 @@ uv sync
 # メインアプリ
 uv run python -m salmon_buddy
 
-# ミニアプリ（例: exp_002）
-uv run python experiments/exp_002_scene_classify/main.py --camera 0 --debug
+# ミニアプリ（例: exp_001 静止画テスト）
+uv run python experiments/exp_001_baito_text_recognition/main.py \
+    --image data/test_fixtures/text/positive/baito_001.png --debug
+
+# ミニアプリ（例: exp_002 動画テスト）
+uv run python experiments/exp_002_video_baito_text_recognition/main.py --camera 10 --debug
 ```
 
 ## テスト
