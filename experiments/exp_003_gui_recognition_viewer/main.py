@@ -22,6 +22,12 @@ def _load_plugins() -> list:
         plugins.append(BaitoTextPlugin())
     except Exception as e:
         print(f"Warning: BaitoTextPlugin の読み込みに失敗: {e}")
+    try:
+        from plugins.wave_number import WaveNumberPlugin
+
+        plugins.append(WaveNumberPlugin())
+    except Exception as e:
+        print(f"Warning: WaveNumberPlugin の読み込みに失敗: {e}")
     return plugins
 
 

@@ -11,6 +11,7 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 1. **DEVELOPMENT.md** — 開発方法論（ミニアプリ駆動開発のルール）
 2. **DESIGN.md** — アーキテクチャ設計、認識パイプライン詳細
+3. **docs/game_rules.md** — サーモンランNWのゲームルール詳細（ドメイン知識）
 
 ## 開発の鉄則
 
@@ -24,10 +25,21 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 ## 現在の作業状況
 
-直近のタスクはなし。次の機能追加の提案待ち。
+### 進行中
+
+- **F-005**: Extra Wave判定 — 📋 未着手（`docs/issues/F-005_extra_wave_recognition/`）
+  - F-004 から EXTRA WAVE 認識を分離。ROI位置・サイズが通常Waveと異なるため独立管理
+  - 要求仕様書: ✅ 作成済み
+  - 機能設計書: ✅ 作成済み
+  - テンプレート: `assets/templates/wave/extra_wave.npy` がF-004時代のものとして残存（F-005着手時に移行）
 
 ### 完了済み
 
+- **F-004**: Wave数判定 — ✅ 完了（`docs/issues/F-004_wave_number_recognition/`）
+  - ステップ1: CLI版ミニアプリ（`experiments/exp_004_wave_number_recognition/`）
+  - ステップ2: GUI統合版（`experiments/exp_003_gui_recognition_viewer/plugins/wave_number.py`）
+  - パラメータ: ROI (76, 35, 199, 80) = 123x45px, pHash 16x16 (256bit), 閾値=116
+  - 精度: **100% (104/104)**, 処理時間: 0.33ms/frame
 - **F-003**: GUI認識ビューワー — ✅ 完了（`experiments/exp_003_gui_recognition_viewer/`）
 - **B-001**: FPS過大表示バグ — ✅ 修正完了（`_new_frame_available` フラグ導入）
 
@@ -67,6 +79,43 @@ uv run pytest tests/unit/         # ユニットテスト
 uv run pytest tests/integration/  # 統合テスト
 uv run pytest                     # 全部
 ```
+
+## サブエージェント活用ルール
+
+### テスト・品質チェックはサブエージェントに委譲する
+- コード変更後の `pytest`, `ruff check`, `mypy --strict` → test-runner サブエージェントに委譲
+- ミニアプリの精度検証バッチ → accuracy-checker サブエージェントに委譲
+
+### サブエージェントに委譲しない作業
+- 要求仕様書・機能設計書の作成（人間の承認が必要）
+- アーキテクチャの設計判断
+- experiments/ への新ファイル作成（メインエージェントが担当）
+
+### 明示的な委譲指示の例
+実装完了後は以下のように指示する:
+- 「test-runner サブエージェントでテストを実行して」
+- 「accuracy-checker で F-004 の精度検証をして」
+```
+
+---
+
+## 使い方（Claude Codeでの操作）
+
+### 自動委譲
+`description` に "proactively" と書いてあるので、コード変更後にClaude Codeが自動的にtest-runnerを呼ぶことがあります。ただしClaude はサブエージェントを控えめに使う傾向があるので、どのステップをサブエージェントに委譲するか明示的に指示すると最良の結果が得られます。 
+
+### 明示的な呼び出し（推奨）
+```
+> WaveNumberPlugin の実装が終わったので、test-runner サブエージェントで全テストを実行して
+```
+```
+> accuracy-checker サブエージェントで exp_004 の test_fixtures/wave/ に対する精度検証をして
+```
+
+### 並列実行
+複数のチェックを同時に走らせることもできます:
+```
+> test-runner でユニットテストを実行して、同時に ruff と mypy のチェックもして
 
 ## コーディング規約
 
@@ -155,4 +204,6 @@ salmon-buddy/
 | 用語 | 説明 |
 |------|------|
 | サーモンランNW | Nintendo SwitchのゲームソフトであるSplatoon 3のゲームモードの一つ「サーモンラン NEXT WAVE」の略称 |
+| バイト | アルバイトの略称で、このリポジトリ内ではSalmonrun Next Waveのゲームをプレイしている事象を指す |
 | バイトの時間です | サーモンランNWのマッチング完了後、ゲーム開始前に画面に表示される固定テキストの一つ |
+| Wave | バイト1回のなかにWave（ウェーブ）と呼ばれる区切りが存在する。ひとつのWAVEは10カウントの「準備時間」と100カウントの「本番」、WAVEクリア時の短い「休憩時間」で構成されている。通常のバイトだとWaveは1~3と"Extra Wave"の4種類がある。不定期に開催される"バイトチームコンテスト"ではWave1~5の5種類がある |
