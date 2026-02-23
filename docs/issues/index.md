@@ -10,6 +10,12 @@
 | F-004 | Wave数判定 | ✅ 完了 | exp_004 | - | ステップ1,2,3完了。shared/recognition/ にpHash共通関数を切り出し済み |
 | F-005 | Extra Wave判定 | ✅ 完了 | exp_005 | - | ROI (38,35,238,80) 200x45px, pHash 1段判定。精度100%, 0.19ms, 閾値110 |
 
+## リファクタリング (Refactoring)
+
+| 番号 | 名称 | 状態 | 対象 | 備考 |
+|---|---|---|---|---|
+| R-001 | pHash共通化リファクタリング | ✅ 完了 | exp_001, exp_002, exp_003 | cv2.img_hash.PHash(8x8)→shared/recognition(16x16)に統一。精度100%, 0.22ms, 閾値62。[要求仕様書](R-001_phash_commonization/requirements.md) / [機能設計書](R-001_phash_commonization/design.md) |
+
 ## バグ修正 (Bug)
 
 | 番号 | 名称 | 状態 | 原因 | 修正先 | 備考 |

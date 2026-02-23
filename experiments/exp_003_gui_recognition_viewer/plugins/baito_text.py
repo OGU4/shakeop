@@ -21,7 +21,8 @@ from main import BaitoTextRecognizer  # noqa: E402
 DEFAULT_ROI = (750, 545, 1170, 600)
 
 # テンプレートハッシュのデフォルトパス
-DEFAULT_TEMPLATE_PATH = _EXP_001_DIR / "template_hash8.npy"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+DEFAULT_TEMPLATE_PATH = _PROJECT_ROOT / "assets" / "templates" / "text" / "baito.npy"
 
 
 class BaitoTextPlugin:

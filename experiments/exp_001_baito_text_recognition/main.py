@@ -3,37 +3,46 @@
 exp_001: 「バイトの時間です」テキスト認識 (pHash)
 
 目的: ROI切り出し + pHash で固定テキストの有無を判定できるか検証
-手法: OpenCV cv2.img_hash.PHash
+手法: shared/recognition の 16x16 DCT pHash (256bit)
 実行: uv run python experiments/exp_001_baito_text_recognition/main.py --image <path> --debug
 """
 
 import argparse
+import sys
 import time
 from pathlib import Path
 
 import cv2
 import numpy as np
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+from shared.recognition import compute_phash, hamming_distance  # noqa: E402
+
 
 # FHD基準のROI座標 (x1, y1, x2, y2)
 DEFAULT_ROI = (750, 545, 1170, 600)
+
+# デフォルトテンプレートパス
+DEFAULT_TEMPLATE_PATH = _PROJECT_ROOT / "assets" / "templates" / "text" / "baito.npy"
 
 
 class BaitoTextRecognizer:
     """「バイトの時間です」テキストのpHash認識器"""
 
+    # pHashの最大ハミング距離 (16x16 = 256bit)
+    MAX_DISTANCE = 256
+
     def __init__(
         self,
         template_hash: np.ndarray,
         roi: tuple[int, int, int, int] = DEFAULT_ROI,
-        threshold: int = 10,
-        hash_size: int = 8,
+        threshold: int = 62,
     ):
         self.template_hash = template_hash
         self.roi = roi
         self.threshold = threshold
-        self.hash_size = hash_size
-        self._hasher = cv2.img_hash.PHash.create()
 
     def recognize(self, frame: np.ndarray) -> tuple[bool, float]:
         """
@@ -45,10 +54,9 @@ class BaitoTextRecognizer:
             (テキストの有無, 信頼度 0.0-1.0)
         """
         roi_gray = self._extract_roi(frame)
-        input_hash = self._compute_phash(roi_gray)
-        distance = self._hamming_distance(input_hash, self.template_hash)
-        max_distance = self.hash_size * self.hash_size  # 8x8=64, 16x16=256
-        confidence = 1.0 - (distance / max_distance)
+        input_hash = compute_phash(roi_gray)
+        distance = hamming_distance(input_hash, self.template_hash)
+        confidence = 1.0 - (distance / self.MAX_DISTANCE)
         detected = distance <= self.threshold
         return detected, confidence
 
@@ -58,16 +66,8 @@ class BaitoTextRecognizer:
         roi = frame[y1:y2, x1:x2]
         return cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
-    def _compute_phash(self, image: np.ndarray) -> np.ndarray:
-        """pHashを計算する"""
-        return self._hasher.compute(image)
 
-    def _hamming_distance(self, hash1: np.ndarray, hash2: np.ndarray) -> int:
-        """2つのハッシュ間のハミング距離を算出する"""
-        return self._hasher.compare(hash1, hash2)
-
-
-def create_template(image_path: str, roi: tuple[int, int, int, int], hash_size: int) -> np.ndarray:
+def create_template(image_path: str, roi: tuple[int, int, int, int]) -> np.ndarray:
     """テスト画像からテンプレートハッシュを作成する"""
     frame = cv2.imread(image_path)
     if frame is None:
@@ -77,8 +77,7 @@ def create_template(image_path: str, roi: tuple[int, int, int, int], hash_size: 
     roi_img = frame[y1:y2, x1:x2]
     gray = cv2.cvtColor(roi_img, cv2.COLOR_BGR2GRAY)
 
-    hasher = cv2.img_hash.PHash.create()
-    template_hash = hasher.compute(gray)
+    template_hash = compute_phash(gray)
     return template_hash
 
 
@@ -92,7 +91,6 @@ def run_single_image(args, template_hash: np.ndarray):
     recognizer = BaitoTextRecognizer(
         template_hash=template_hash,
         threshold=args.threshold,
-        hash_size=args.hash_size,
     )
 
     start = time.perf_counter()
@@ -110,7 +108,9 @@ def run_single_image(args, template_hash: np.ndarray):
         color = (0, 255, 0) if detected else (0, 0, 255)
         cv2.rectangle(debug_frame, (x1, y1), (x2, y2), color, 2)
         label = f"{'DETECTED' if detected else 'NOT DETECTED'} conf={confidence:.3f} {elapsed_ms:.1f}ms"
-        cv2.putText(debug_frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+        cv2.putText(
+            debug_frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2
+        )
         cv2.imshow("exp_001: baito text recognition", debug_frame)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -125,7 +125,6 @@ def run_test_all(args, template_hash: np.ndarray):
     recognizer = BaitoTextRecognizer(
         template_hash=template_hash,
         threshold=args.threshold,
-        hash_size=args.hash_size,
     )
 
     results = []
@@ -142,7 +141,9 @@ def run_test_all(args, template_hash: np.ndarray):
             elapsed_ms = (time.perf_counter() - start) * 1000
             total_time += elapsed_ms
             correct = detected is True
-            results.append(("positive", img_path.name, detected, confidence, elapsed_ms, correct))
+            results.append(
+                ("positive", img_path.name, detected, confidence, elapsed_ms, correct)
+            )
 
     # 負例テスト
     if negative_dir.exists():
@@ -155,11 +156,15 @@ def run_test_all(args, template_hash: np.ndarray):
             elapsed_ms = (time.perf_counter() - start) * 1000
             total_time += elapsed_ms
             correct = detected is False
-            results.append(("negative", img_path.name, detected, confidence, elapsed_ms, correct))
+            results.append(
+                ("negative", img_path.name, detected, confidence, elapsed_ms, correct)
+            )
 
     # 結果表示
-    print(f"\n=== テスト結果 (hash_size={args.hash_size}, threshold={args.threshold}) ===\n")
-    print(f"{'種別':<10} {'ファイル':<30} {'判定':<12} {'信頼度':<10} {'時間(ms)':<10} {'正否'}")
+    print(f"\n=== テスト結果 (16x16 pHash, threshold={args.threshold}) ===\n")
+    print(
+        f"{'種別':<10} {'ファイル':<30} {'判定':<12} {'信頼度':<10} {'時間(ms)':<10} {'正否'}"
+    )
     print("-" * 85)
 
     positive_correct = 0
@@ -170,7 +175,9 @@ def run_test_all(args, template_hash: np.ndarray):
     for category, name, detected, confidence, elapsed_ms, correct in results:
         status = "OK" if correct else "NG"
         det_str = "テキストあり" if detected else "テキストなし"
-        print(f"{category:<10} {name:<30} {det_str:<12} {confidence:<10.4f} {elapsed_ms:<10.2f} {status}")
+        print(
+            f"{category:<10} {name:<30} {det_str:<12} {confidence:<10.4f} {elapsed_ms:<10.2f} {status}"
+        )
         if category == "positive":
             positive_total += 1
             if correct:
@@ -184,22 +191,40 @@ def run_test_all(args, template_hash: np.ndarray):
     total_correct = positive_correct + negative_correct
     print("-" * 85)
     if positive_total > 0:
-        print(f"正例正解率: {positive_correct}/{positive_total} ({positive_correct / positive_total:.0%})")
+        print(
+            f"正例正解率: {positive_correct}/{positive_total} ({positive_correct / positive_total:.0%})"
+        )
     if negative_total > 0:
-        print(f"負例正解率: {negative_correct}/{negative_total} ({negative_correct / negative_total:.0%})")
+        print(
+            f"負例正解率: {negative_correct}/{negative_total} ({negative_correct / negative_total:.0%})"
+        )
     if total > 0:
         print(f"総合正解率: {total_correct}/{total} ({total_correct / total:.0%})")
         print(f"平均処理時間: {total_time / total:.2f}ms")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="exp_001: 「バイトの時間です」テキスト認識 (pHash)")
+    parser = argparse.ArgumentParser(
+        description="exp_001: 「バイトの時間です」テキスト認識 (pHash)"
+    )
     parser.add_argument("--image", type=str, default=None, help="テスト画像パス")
-    parser.add_argument("--create-template", action="store_true", help="テンプレートハッシュを作成して保存")
-    parser.add_argument("--test-all", type=str, default=None, help="テストディレクトリ（positive/negative配下を全テスト）")
-    parser.add_argument("--template", type=str, default=None, help="テンプレートファイルパス (.npy)")
-    parser.add_argument("--hash-size", type=int, default=8, choices=[8, 16], help="pHashのハッシュサイズ (default: 8)")
-    parser.add_argument("--threshold", type=int, default=10, help="ハミング距離の閾値 (default: 10)")
+    parser.add_argument(
+        "--create-template",
+        action="store_true",
+        help="テンプレートハッシュを作成して保存",
+    )
+    parser.add_argument(
+        "--test-all",
+        type=str,
+        default=None,
+        help="テストディレクトリ（positive/negative配下を全テスト）",
+    )
+    parser.add_argument(
+        "--template", type=str, default=None, help="テンプレートファイルパス (.npy)"
+    )
+    parser.add_argument(
+        "--threshold", type=int, default=62, help="ハミング距離の閾値 (default: 62)"
+    )
     parser.add_argument("--debug", action="store_true", help="デバッグ表示ON")
     return parser.parse_args()
 
@@ -207,19 +232,17 @@ def parse_args():
 def main():
     args = parse_args()
 
-    exp_dir = Path(__file__).parent
-    default_template_path = exp_dir / f"template_hash{args.hash_size}.npy"
-    template_path = Path(args.template) if args.template else default_template_path
+    template_path = Path(args.template) if args.template else DEFAULT_TEMPLATE_PATH
 
     # テンプレート作成モード
     if args.create_template:
         if not args.image:
             print("Error: --create-template には --image が必要です")
             return
-        template_hash = create_template(args.image, DEFAULT_ROI, args.hash_size)
+        template_hash = create_template(args.image, DEFAULT_ROI)
         np.save(str(template_path), template_hash)
         print(f"テンプレート保存: {template_path}")
-        print(f"ハッシュサイズ: {args.hash_size}x{args.hash_size}")
+        print("ハッシュサイズ: 16x16 (256bit)")
         print(f"ハッシュ値: {template_hash}")
 
         if args.debug:

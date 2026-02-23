@@ -12,6 +12,7 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 1. **DEVELOPMENT.md** — 開発方法論（ミニアプリ駆動開発のルール）
 2. **DESIGN.md** — アーキテクチャ設計、認識パイプライン詳細
 3. **docs/game_rules.md** — サーモンランNWのゲームルール詳細（ドメイン知識）
+4. **docs/salmon_run_state_transitions.md** — ゲーム内状態遷移まとめ（FSM設計用）
 
 ## 開発の鉄則
 
@@ -28,9 +29,13 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 ### 進行中
 
-(なし)
+（なし）
 
 ### 完了済み
+
+- **R-001**: pHash共通化リファクタリング — ✅ 完了
+  - exp_001/exp_002/exp_003の`cv2.img_hash.PHash`(8x8) → `shared/recognition`(16x16) に統一
+  - 精度100% (4/4), 0.22ms, 閾値62
 
 - **F-005**: Extra Wave判定 — ✅ 完了（`experiments/exp_005_extra_wave_recognition/`）
   - ROI全体の1段pHash判定。精度100% (150/150), 0.19ms, 閾値110
@@ -153,7 +158,7 @@ salmon-buddy/
 7. ステータス更新      → docs/issues/index.md を「✅ 完了」に
 ```
 
-管理番号: `F-NNN`（機能）/ `B-NNN`（バグ）
+管理番号: `F-NNN`（機能）/ `B-NNN`（バグ）/ `R-NNN`（リファクタリング）
 
 ## ミニアプリの作り方
 
@@ -177,6 +182,7 @@ salmon-buddy/
 ```
 [F-NNN] 機能の仕様・設計・実装
 [B-NNN] バグ修正
+[R-NNN] リファクタリング
 [exp:NNN] ミニアプリ関連
 [integrate] 統合作業
 [app] メインアプリ（軽微な変更）

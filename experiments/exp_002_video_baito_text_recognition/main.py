@@ -21,7 +21,8 @@ sys.path.insert(0, str(EXP_001_DIR))
 from main import BaitoTextRecognizer  # noqa: E402
 
 # デフォルトパス
-DEFAULT_TEMPLATE_PATH = EXP_001_DIR / "template_hash8.npy"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_TEMPLATE_PATH = _PROJECT_ROOT / "assets" / "templates" / "text" / "baito.npy"
 DEFAULT_ROI = (750, 545, 1170, 600)
 
 
@@ -39,7 +40,7 @@ def parse_args() -> argparse.Namespace:
         help="テンプレートハッシュパス (.npy)",
     )
     parser.add_argument(
-        "--threshold", type=int, default=10, help="ハミング距離の閾値 (default: 10)"
+        "--threshold", type=int, default=62, help="ハミング距離の閾値 (default: 62)"
     )
     parser.add_argument("--debug", action="store_true", help="OpenCVデバッグ表示ON")
     return parser.parse_args()
