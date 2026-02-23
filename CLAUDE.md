@@ -28,23 +28,13 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 ### 進行中
 
-- **F-005**: Extra Wave判定 — 📝 仕様確定・実装待ち（`docs/issues/F-005_extra_wave_recognition/`）
-  - 要求仕様書: ✅ 確定（`docs/issues/F-005_extra_wave_recognition/requirements.md`）
-  - 機能設計書: ✅ 確定（`docs/issues/F-005_extra_wave_recognition/design.md`）
-  - テンプレート: `assets/templates/wave/extra_wave.npy` 保存済み
-  - テストデータ: `data/test_fixtures/wave/extra/` に配置済み
-  - **次のアクション: ミニアプリ実装**（設計書の通りにコードを書く）
-    - `experiments/exp_005_extra_wave_recognition/` を新規作成
-      - `extra_wave_recognizer.py` — ExtraWaveRecognizer（ROI全体の1段pHash判定）
-      - `main.py` — CLI（テンプレート作成 + 一括判定モード）
-      - `README.md` — 実験結果記録
-    - `experiments/exp_003_gui_recognition_viewer/plugins/extra_wave.py` — ExtraWavePlugin
-    - `experiments/exp_003_gui_recognition_viewer/main.py` — `_load_plugins()` にプラグイン追加
-    - 参考実装: F-004 の `experiments/exp_004_wave_number_recognition/` と同じパターン
-    - pHash共通関数: `shared/recognition/` の `compute_phash`, `hamming_distance` を使用
+(なし)
 
 ### 完了済み
 
+- **F-005**: Extra Wave判定 — ✅ 完了（`experiments/exp_005_extra_wave_recognition/`）
+  - ROI全体の1段pHash判定。精度100% (150/150), 0.19ms, 閾値110
+  - GUI統合: `exp_003_gui_recognition_viewer/plugins/extra_wave.py`
 - **F-004**: Wave数判定 — ✅ 完了（`experiments/exp_004_wave_number_recognition/`）
   - ステップ1: CLI版ミニアプリ、ステップ2: GUI統合版、ステップ3: shared/recognition/ 共通化
 - **F-003**: GUI認識ビューワー — ✅ 完了（`experiments/exp_003_gui_recognition_viewer/`）

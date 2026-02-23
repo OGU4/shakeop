@@ -28,6 +28,12 @@ def _load_plugins() -> list:
         plugins.append(WaveNumberPlugin())
     except Exception as e:
         print(f"Warning: WaveNumberPlugin の読み込みに失敗: {e}")
+    try:
+        from plugins.extra_wave import ExtraWavePlugin
+
+        plugins.append(ExtraWavePlugin())
+    except Exception as e:
+        print(f"Warning: ExtraWavePlugin の読み込みに失敗: {e}")
     return plugins
 
 
