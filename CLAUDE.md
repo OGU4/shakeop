@@ -28,18 +28,15 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 ### 進行中
 
 - **F-005**: Extra Wave判定 — 📋 未着手（`docs/issues/F-005_extra_wave_recognition/`）
-  - F-004 から EXTRA WAVE 認識を分離。ROI位置・サイズが通常Waveと異なるため独立管理
-  - 要求仕様書: ✅ 作成済み
-  - 機能設計書: ✅ 作成済み
+  - F-004 ステップ3の完了が前提（`shared/recognition/` を使って構築する方針）
+  - 要求仕様書: ✅ 作成済み（ただしROIのF-004由来表現の修正が凍結中）
+  - 機能設計書: ✅ 作成済み（同上）
   - テンプレート: `assets/templates/wave/extra_wave.npy` がF-004時代のものとして残存（F-005着手時に移行）
 
 ### 完了済み
 
-- **F-004**: Wave数判定 — ✅ 完了（`docs/issues/F-004_wave_number_recognition/`）
-  - ステップ1: CLI版ミニアプリ（`experiments/exp_004_wave_number_recognition/`）
-  - ステップ2: GUI統合版（`experiments/exp_003_gui_recognition_viewer/plugins/wave_number.py`）
-  - パラメータ: ROI (76, 35, 199, 80) = 123x45px, pHash 16x16 (256bit), 閾値=116
-  - 精度: **100% (104/104)**, 処理時間: 0.33ms/frame
+- **F-004**: Wave数判定 — ✅ 完了（`experiments/exp_004_wave_number_recognition/`）
+  - ステップ1: CLI版ミニアプリ、ステップ2: GUI統合版、ステップ3: shared/recognition/ 共通化
 - **F-003**: GUI認識ビューワー — ✅ 完了（`experiments/exp_003_gui_recognition_viewer/`）
 - **B-001**: FPS過大表示バグ — ✅ 修正完了（`_new_frame_available` フラグ導入）
 
@@ -134,6 +131,7 @@ salmon-buddy/
 ├── DESIGN.md          # アーキテクチャ設計
 ├── src/salmon_buddy/  # メインアプリ
 ├── shared/salmon_types/ # 共通の型定義（Protocol, dataclass, Enum）
+├── shared/recognition/  # 共通の認識ユーティリティ（pHash等）
 ├── experiments/       # ミニアプリ群（exp_NNN_description/）
 ├── docs/issues/       # 管理番号別ドキュメント（要求仕様書・機能設計書）
 ├── models/            # ONNXモデル（gitignore）

@@ -12,8 +12,16 @@ WaveNumberRecognizer: Wave数のpHash認識器（ROI分割方式）
 ※ EXTRA WAVE の認識は F-005 に分離
 """
 
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+from shared.recognition import compute_phash, hamming_distance  # noqa: E402
 
 
 class WaveNumberRecognizer:
@@ -66,19 +74,19 @@ class WaveNumberRecognizer:
 
         # Stage 1: 「WAVE」テキスト判定
         wave_text_region = self._split_wave_text(binary)
-        wave_text_phash = self.compute_phash(wave_text_region)
-        wave_text_dist = self.hamming_distance(wave_text_phash, self.wave_text_hash)
+        wave_text_phash = compute_phash(wave_text_region)
+        wave_text_dist = hamming_distance(wave_text_phash, self.wave_text_hash)
 
         if wave_text_dist <= self.threshold:
             # Stage 2: 数字判定 (1~5)
             digit_region = self._split_digit(binary)
-            digit_phash = self.compute_phash(digit_region)
+            digit_phash = compute_phash(digit_region)
 
             best_digit = -1
             best_dist = self.MAX_DISTANCE + 1
 
             for digit, digit_hash in self.digit_hashes.items():
-                dist = self.hamming_distance(digit_phash, digit_hash)
+                dist = hamming_distance(digit_phash, digit_hash)
                 if dist < best_dist:
                     best_dist = dist
                     best_digit = digit
@@ -115,14 +123,14 @@ class WaveNumberRecognizer:
         binary = self._preprocess(roi)
 
         wave_text_region = self._split_wave_text(binary)
-        wave_text_phash = self.compute_phash(wave_text_region)
-        wave_text_dist = self.hamming_distance(wave_text_phash, self.wave_text_hash)
+        wave_text_phash = compute_phash(wave_text_region)
+        wave_text_dist = hamming_distance(wave_text_phash, self.wave_text_hash)
 
         digit_region = self._split_digit(binary)
-        digit_phash = self.compute_phash(digit_region)
+        digit_phash = compute_phash(digit_region)
         digit_distances = {}
         for digit, digit_hash in self.digit_hashes.items():
-            digit_distances[digit] = self.hamming_distance(digit_phash, digit_hash)
+            digit_distances[digit] = hamming_distance(digit_phash, digit_hash)
 
         result, confidence = self.recognize(frame)
 
@@ -157,26 +165,3 @@ class WaveNumberRecognizer:
     def _split_digit(self, binary: np.ndarray) -> np.ndarray:
         """二値画像から右33pxの数字部を取得"""
         return binary[:, self.WAVE_DIGIT_OFFSET :]
-
-    @staticmethod
-    def compute_phash(image: np.ndarray) -> np.ndarray:
-        """16x16 pHashを計算する (256bit)
-
-        32x32にリサイズ → DCT → 低周波16x16係数 → 平均値で二値化 → 256bitハッシュ
-        """
-        resized = cv2.resize(image, (32, 32), interpolation=cv2.INTER_LINEAR)
-        if len(resized.shape) == 3:
-            resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-        float_img = np.float32(resized)
-        dct = cv2.dct(float_img)
-        dct_low = dct[:16, :16]
-        dct_flat = dct_low.flatten()
-        # DC成分(index 0)を除いた平均値で閾値を決定（OpenCV PHashと同じ手法）
-        mean_val = np.mean(dct_flat[1:])
-        hash_bits = (dct_flat > mean_val).astype(np.uint8)
-        return np.packbits(hash_bits)  # 256bit = 32bytes
-
-    @staticmethod
-    def hamming_distance(hash1: np.ndarray, hash2: np.ndarray) -> int:
-        """2つのハッシュ間のハミング距離を算出する"""
-        return int(np.unpackbits(np.bitwise_xor(hash1, hash2)).sum())

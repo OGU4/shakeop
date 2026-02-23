@@ -7,7 +7,7 @@
 | 管理番号 | F-004 |
 | 要求仕様書 | [requirements.md](./requirements.md) |
 | 作成日 | 2026-02-22 |
-| ステータス | ✅ 確定 |
+| ステータス | ✅ 完了 |
 
 ## 設計方針
 
@@ -60,6 +60,21 @@ experiments/exp_003_gui_recognition_viewer/plugins/
 ```
 experiments/exp_003_gui_recognition_viewer/
 └── main.py                  # _load_plugins() に WaveNumberPlugin を追加登録
+```
+
+### ステップ3（共通化リファクタリング）
+
+```
+shared/recognition/
+├── __init__.py              # 公開APIの re-export
+└── phash.py                 # compute_phash, hamming_distance
+```
+
+**変更対象（既存ファイル）:**
+
+```
+experiments/exp_004_wave_number_recognition/
+└── wave_recognizer.py       # compute_phash, hamming_distance を shared/ からの import に置き換え
 ```
 
 ## クラス・関数設計
@@ -134,6 +149,103 @@ class WaveNumberRecognizer:
         """2つのハッシュ間のハミング距離を算出する"""
         ...
 ```
+
+### shared/recognition/（ステップ3: 共通化）
+
+#### shared/recognition/__init__.py
+
+公開APIを re-export する。利用側は `from shared.recognition import compute_phash, hamming_distance` で使用する。
+
+```python
+from shared.recognition.phash import compute_phash, hamming_distance
+
+__all__ = ["compute_phash", "hamming_distance"]
+```
+
+#### shared/recognition/phash.py
+
+`WaveNumberRecognizer` から以下の2関数をそのまま移動する。ロジックは一切変更しない。
+
+```python
+import cv2
+import numpy as np
+
+
+def compute_phash(image: np.ndarray) -> np.ndarray:
+    """16x16 pHashを計算する (256bit, DCTベース)
+
+    32x32にリサイズ → DCT → 低周波16x16係数 → 平均値で二値化 → 256bitハッシュ
+    """
+    resized = cv2.resize(image, (32, 32), interpolation=cv2.INTER_LINEAR)
+    if len(resized.shape) == 3:
+        resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+    float_img = np.float32(resized)
+    dct = cv2.dct(float_img)
+    dct_low = dct[:16, :16]
+    dct_flat = dct_low.flatten()
+    mean_val = np.mean(dct_flat[1:])
+    hash_bits = (dct_flat > mean_val).astype(np.uint8)
+    return np.packbits(hash_bits)
+
+
+def hamming_distance(hash1: np.ndarray, hash2: np.ndarray) -> int:
+    """2つのハッシュ間のハミング距離を算出する"""
+    return int(np.unpackbits(np.bitwise_xor(hash1, hash2)).sum())
+```
+
+#### shared/__init__.py
+
+空ファイル（パッケージ認識用）。
+
+### ステップ3: 既存コードの変更
+
+#### wave_recognizer.py の変更
+
+**import追加**（`sys.path.insert` パターンで プロジェクトルートを追加）:
+
+```python
+import sys
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+from shared.recognition import compute_phash, hamming_distance
+```
+
+パス解決: `wave_recognizer.py` → `exp_004_wave_number_recognition/` → `experiments/` → プロジェクトルート
+
+**削除**: `compute_phash` と `hamming_distance` の `@staticmethod` 定義（2箇所）
+
+**呼び出し箇所の変更**（8箇所）:
+
+| 変更前 | 変更後 |
+|---|---|
+| `self.compute_phash(region)` | `compute_phash(region)` |
+| `self.hamming_distance(h1, h2)` | `hamming_distance(h1, h2)` |
+
+対象メソッド: `recognize()` 内4箇所、`recognize_debug()` 内4箇所
+
+#### main.py (exp_004) の変更
+
+**import追加**:
+
+```python
+from shared.recognition import compute_phash
+```
+
+`main.py` は `wave_recognizer.py` と同じディレクトリにあるため、`wave_recognizer.py` が `sys.path` にプロジェクトルートを追加済みであれば追加の `sys.path.insert` は不要。
+ただし import 順序に依存するため、`main.py` にも同じ `sys.path.insert` を記述する方が安全。
+
+**呼び出し箇所の変更**（2箇所）:
+
+| 変更前 | 変更後 |
+|---|---|
+| `WaveNumberRecognizer.compute_phash(region)` | `compute_phash(region)` |
+
+#### wave_number.py (exp_003 plugin) の変更
+
+**変更なし**。`WaveNumberPlugin` は `WaveNumberRecognizer` を内部的に使用しており、`compute_phash` / `hamming_distance` を直接呼び出していないため影響を受けない。
 
 ### WaveNumberPlugin（ステップ2: GUI統合用）
 

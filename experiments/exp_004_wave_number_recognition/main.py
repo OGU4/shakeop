@@ -17,6 +17,7 @@ exp_004: Wave数判定 (pHash + HSV白色抽出 + ROI分割)
 """
 
 import argparse
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -24,7 +25,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from wave_recognizer import WaveNumberRecognizer
+# プロジェクトルートをパスに追加
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+from shared.recognition import compute_phash  # noqa: E402
+from wave_recognizer import WaveNumberRecognizer  # noqa: E402
 
 # テンプレート配置先
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -84,7 +90,9 @@ def run_create_template(args):
     x1, y1, x2, y2 = WaveNumberRecognizer.WAVE_ROI
     roi = frame[y1:y2, x1:x2]
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, WaveNumberRecognizer.HSV_LOWER, WaveNumberRecognizer.HSV_UPPER)
+    mask = cv2.inRange(
+        hsv, WaveNumberRecognizer.HSV_LOWER, WaveNumberRecognizer.HSV_UPPER
+    )
     binary = cv2.morphologyEx(mask, cv2.MORPH_OPEN, WaveNumberRecognizer.MORPH_KERNEL)
 
     if args.wave_number is not None:
@@ -94,14 +102,14 @@ def run_create_template(args):
         wave_text_path = template_dir / TEMPLATE_FILES["wave_text"]
         if not wave_text_path.exists():
             wave_text_region = binary[:, : WaveNumberRecognizer.WAVE_TEXT_WIDTH]
-            wave_text_hash = WaveNumberRecognizer.compute_phash(wave_text_region)
+            wave_text_hash = compute_phash(wave_text_region)
             np.save(str(wave_text_path), wave_text_hash)
             print(f"テンプレート保存: {wave_text_path}")
             print(f"  WAVEテキスト部ハッシュ: {wave_text_hash.flatten()}")
 
         # 数字部のハッシュ
         digit_region = binary[:, WaveNumberRecognizer.WAVE_DIGIT_OFFSET :]
-        digit_hash = WaveNumberRecognizer.compute_phash(digit_region)
+        digit_hash = compute_phash(digit_region)
         save_path = template_dir / TEMPLATE_FILES[f"digit_{wave_num}"]
         np.save(str(save_path), digit_hash)
         print(f"テンプレート保存: {save_path}")
@@ -137,11 +145,11 @@ def run_create_template(args):
         cv2.imwrite(str(debug_dir / "frame_with_roi.png"), frame_with_roi)
 
         print(f"\nデバッグ画像を保存しました: {debug_dir}/")
-        print(f"  frame_with_roi.png  — ROI矩形(緑)+分割線(赤)を元画像に描画")
-        print(f"  roi_bgr.png         — ROI切り出し (カラー)")
-        print(f"  roi_binary.png      — ROI二値化")
-        print(f"  wave_text_left128.png — WAVEテキスト部")
-        print(f"  digit_right72.png   — 数字部")
+        print("  frame_with_roi.png  — ROI矩形(緑)+分割線(赤)を元画像に描画")
+        print("  roi_bgr.png         — ROI切り出し (カラー)")
+        print("  roi_binary.png      — ROI二値化")
+        print("  wave_text_left128.png — WAVEテキスト部")
+        print("  digit_right72.png   — 数字部")
 
 
 def get_expected_result(filepath: Path) -> str | None:
@@ -209,19 +217,23 @@ def run_image_dir(args):
         expected = get_expected_result(img_path)
         correct = (expected == result) if expected is not None else None
 
-        results.append({
-            "path": img_path,
-            "filename": img_path.relative_to(image_dir),
-            "result": result,
-            "confidence": confidence,
-            "elapsed_ms": elapsed_ms,
-            "expected": expected,
-            "correct": correct,
-            "debug_info": debug_info,
-        })
+        results.append(
+            {
+                "path": img_path,
+                "filename": img_path.relative_to(image_dir),
+                "result": result,
+                "confidence": confidence,
+                "elapsed_ms": elapsed_ms,
+                "expected": expected,
+                "correct": correct,
+                "debug_info": debug_info,
+            }
+        )
 
     # コンソール出力
-    print(f"{'ファイル':<50} {'判定':<10} {'期待':<10} {'信頼度':<10} {'時間(ms)':<10} {'正否'}")
+    print(
+        f"{'ファイル':<50} {'判定':<10} {'期待':<10} {'信頼度':<10} {'時間(ms)':<10} {'正否'}"
+    )
     print("-" * 105)
 
     for r in results:
@@ -316,7 +328,9 @@ def run_image_dir(args):
                     1,
                 )
                 # 拡大表示
-                roi_vis = cv2.resize(roi_vis, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST)
+                roi_vis = cv2.resize(
+                    roi_vis, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST
+                )
 
                 title = f"NG: {r['filename']} | result={r['result']} expected={r['expected']}"
                 cv2.imshow(title, roi_vis)
