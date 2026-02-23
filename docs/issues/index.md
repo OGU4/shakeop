@@ -9,6 +9,7 @@
 | F-003 | GUI認識ビューワー | ✅ 完了 | exp_003 | - | F-002のGUI化。PySide6 GUIミニアプリ。B-001修正済み |
 | F-004 | Wave数判定 | ✅ 完了 | exp_004 | - | ステップ1,2,3完了。shared/recognition/ にpHash共通関数を切り出し済み |
 | F-005 | Extra Wave判定 | ✅ 完了 | exp_005 | - | ROI (38,35,238,80) 200x45px, pHash 1段判定。精度100%, 0.19ms, 閾値110 |
+| F-006 | "Work's Over!!" テキスト認識 | ✅ 完了 | exp_006 | - | ゲームオーバー時の固定テキスト認識。ROI (728,872,1048,976) 320x104px, pHash 1段判定。精度100% (149/149), 0.20ms, 閾値50。GUI統合済み(WorksOverPlugin)。[要求仕様書](F-006_works_over_recognition/requirements.md) / [機能設計書](F-006_works_over_recognition/design.md) |
 
 ## リファクタリング (Refactoring)
 

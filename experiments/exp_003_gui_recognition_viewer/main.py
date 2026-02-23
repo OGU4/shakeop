@@ -34,6 +34,12 @@ def _load_plugins() -> list:
         plugins.append(ExtraWavePlugin())
     except Exception as e:
         print(f"Warning: ExtraWavePlugin の読み込みに失敗: {e}")
+    try:
+        from plugins.works_over import WorksOverPlugin
+
+        plugins.append(WorksOverPlugin())
+    except Exception as e:
+        print(f"Warning: WorksOverPlugin の読み込みに失敗: {e}")
     return plugins
 
 

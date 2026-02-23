@@ -27,12 +27,11 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 ## 現在の作業状況
 
-### 進行中
-
-（なし）
-
 ### 完了済み
 
+- **F-006**: "Work's Over!!" テキスト認識 — ✅ 完了（`experiments/exp_006_works_over_recognition/`）
+  - ROI全体の1段pHash判定。精度100% (149/149), 0.20ms, 閾値50
+  - GUI統合: `exp_003_gui_recognition_viewer/plugins/works_over.py`
 - **R-001**: pHash共通化リファクタリング — ✅ 完了
   - exp_001/exp_002/exp_003の`cv2.img_hash.PHash`(8x8) → `shared/recognition`(16x16) に統一
   - 精度100% (4/4), 0.22ms, 閾値62
