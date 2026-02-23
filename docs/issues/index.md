@@ -8,7 +8,7 @@
 | F-002 | 「バイトの時間です」動画テキスト認識 | ✅ 完了 | exp_002 | - | F-001の動画入力拡張。カメラ(/dev/video10)からリアルタイム認識 |
 | F-003 | GUI認識ビューワー | ✅ 完了 | exp_003 | - | F-002のGUI化。PySide6 GUIミニアプリ。B-001修正済み |
 | F-004 | Wave数判定 | ✅ 完了 | exp_004 | - | ステップ1,2,3完了。shared/recognition/ にpHash共通関数を切り出し済み |
-| F-005 | Extra Wave判定 | 📋 未着手 | 未定 | - | F-004から分離。EXTRA WAVE専用のROI・認識を独立管理 |
+| F-005 | Extra Wave判定 | 📝 仕様確定 | exp_005（予定） | - | ROI (38,35,238,80) 200x45px, pHash 1段判定, shared/recognition/ 使用 |
 
 ## バグ修正 (Bug)
 
