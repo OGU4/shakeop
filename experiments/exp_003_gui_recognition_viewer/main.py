@@ -40,6 +40,12 @@ def _load_plugins() -> list:
         plugins.append(WorksOverPlugin())
     except Exception as e:
         print(f"Warning: WorksOverPlugin の読み込みに失敗: {e}")
+    try:
+        from plugins.clear_result import ClearResultPlugin
+
+        plugins.append(ClearResultPlugin())
+    except Exception as e:
+        print(f"Warning: ClearResultPlugin の読み込みに失敗: {e}")
     return plugins
 
 
