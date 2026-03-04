@@ -20,6 +20,46 @@
 
 ---
 
+## クイックリファレンス
+
+### 環境セットアップ
+
+```bash
+uv sync
+```
+
+### 実行
+
+```bash
+# メインアプリ
+uv run python -m salmon_buddy
+
+# ミニアプリ（例: exp_001 静止画テスト）
+uv run python experiments/exp_001_baito_text_recognition/main.py \
+    --image data/test_fixtures/text/positive/baito_001.png --debug
+
+# ミニアプリ（例: exp_002 動画テスト）
+uv run python experiments/exp_002_video_baito_text_recognition/main.py --camera 10 --debug
+```
+
+### テスト
+
+```bash
+uv run pytest tests/unit/         # ユニットテスト
+uv run pytest tests/integration/  # 統合テスト
+uv run pytest                     # 全部
+```
+
+### コーディング規約
+
+```bash
+uv run ruff format src/ shared/ experiments/ tests/
+uv run ruff check src/ shared/ experiments/ tests/
+uv run mypy --strict src/ shared/
+```
+
+---
+
 ## 1. 開発の基本原則
 
 ### 1.1 ミニアプリ駆動開発 (Mini-App Driven Development)

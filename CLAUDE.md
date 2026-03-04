@@ -14,6 +14,12 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 3. **docs/game_rules.md** — サーモンランNWのゲームルール詳細（ドメイン知識）
 4. **docs/salmon_run_state_transitions.md** — ゲーム内状態遷移まとめ（FSM設計用）
 
+**仕様書の作成・レビュー時に従うこと:**
+
+5. **docs/REQUIREMENTS_STANDARD.md** — 要求仕様書の記述基準
+6. **docs/DESIGN_STANDARD.md** — 機能設計書の記述基準
+7. **docs/REVIEW_CRITERIA.md** — 要求仕様書・機能設計書のレビュー基準
+
 ## 開発の鉄則
 
 ```
@@ -23,12 +29,92 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 ★ ミニアプリは shared/salmon_types/ の共通型（Protocol/dataclass）を使う。
 ★ 精度・速度が基準を満たしたら統合チェックリストに沿って src/ に移植する。
 ★ ミニアプリは統合後も削除しない（回帰テスト・比較実験用に残す）。
+★ ライブラリの追加・変更・削除を行った場合は docs/TECH_STACK.md も更新すること。
+★ 新規ライブラリ導入時は用途・選定理由・バージョンを TECH_STACK.md に追記すること。
 ```
+
+### 開発方針
+
+- **シンプルな機能を一つずつ作り、積み重ねて目的を達成する**
+- 大きな機能を一度に作らない。小さく作って動作確認し、次の機能へ進む
+
+### ドキュメント作成ルール
+
+- **実装前に必ず「要求仕様書」と「機能設計書」を作成し、ファイルに保存すること**
+- ドキュメントが保存されていない場合は、**実装を中止**する
+- 要求仕様書：何を達成すべきか（入出力、制約、品質基準）。作成時は `docs/REQUIREMENTS_STANDARD.md` の基準に従うこと
+- 機能設計書：どう実現するか（モジュール構成、アルゴリズム、データ構造）。作成時は `docs/DESIGN_STANDARD.md` の基準に従うこと
+- ドキュメントは `docs/issues/{管理番号}_{名称}/` ディレクトリに置く
+- **/clear 後でも実装がスムーズにできるよう、必要な情報を全て記述する**
+- 暗黙知に頼らず、**自己完結したドキュメント**にする（前の会話コンテキストがなくても実装できること）
+
+## 機能ごとの開発フロー（厳守）
+
+各機能について、以下のフローを**厳守**する。**planモードは使わない**（通常モードで調査・計画を行う）。
+管理番号: `F-NNN`（機能）/ `B-NNN`（バグ）/ `R-NNN`（リファクタリング）
+
+### ステップ1: 調査・計画
+
+通常モードで既存コードを調査し、要求仕様書と機能設計書を設計する。
+
+- 関連コード・既存ミニアプリ・DESIGN.md等を調査
+- 管理番号を決定（F-NNN / B-NNN / R-NNN）
+- 要求仕様書（requirements.md）の内容を設計
+- 機能設計書（design.md）の内容を設計
+
+### ステップ2: ドキュメント保存
+
+要求仕様書と機能設計書を `docs/issues/` にファイル保存する。**保存が完了するまで実装に進んではならない**。
+
+1. `docs/issues/index.md` に管理番号を追記
+2. `docs/issues/{管理番号}_{名称}/requirements.md` を作成 — **`docs/REQUIREMENTS_STANDARD.md` に従うこと**
+3. `docs/issues/{管理番号}_{名称}/design.md` を作成 — **`docs/DESIGN_STANDARD.md` に従うこと**
+
+### ステップ3: レビュー（Subagent + 人）
+
+`docs/issues/` に保存されたドキュメントをSubagent（Agentツール）でレビューする。ユーザーも同時にレビューする。レビュー実行時は **`docs/REVIEW_CRITERIA.md`** の基準に従うこと。
+
+### ステップ4: 修正（必要な場合）
+
+レビューで問題があれば、再調査してドキュメントを更新する。**ステップ1〜3を問題がなくなるまで繰り返す**。
+
+### ステップ5: 引き継ぎ・/clear
+
+`CLAUDE.md` の「現在の作業状況」セクションを更新し、実装セッションに必要な情報を整える。その後ユーザーが `/clear` を実行する。
+
+保存する仕様書は以下の要件を満たすこと:
+
+```
+★ 要求仕様書と機能設計書だけで実装に必要な情報がすべて揃っていること。
+★ 会話の文脈に依存する情報を仕様書に残さない（/clear後は会話履歴が消える）。
+★ 具体的なROI座標、ファイルパス、閾値、アルゴリズム手順等を明記すること。
+★ CLAUDE.mdの「現在の作業状況」に、実装すべきタスクと参照先の仕様書パスを記載すること。
+★ /clear後のClaude CodeがCLAUDE.md→仕様書の順に読めば実装を開始できる状態にすること。
+```
+
+### ステップ6: 実装（/clear後）
+
+ドキュメント（要求仕様書・機能設計書・CLAUDE.md）を読んで実装する。
 
 ## 現在の作業状況
 
+### 作業中
+
+（なし）
+
+<!-- 作業中タスクのテンプレート:
+- **F-NNN**: タスク名 — 🔬 実装中
+  - 要求仕様書: `docs/issues/F-NNN_xxx/requirements.md`
+  - 機能設計書: `docs/issues/F-NNN_xxx/design.md`
+  - 実装先: `experiments/exp_NNN_xxx/`
+  - 次のアクション: （具体的に何をすべきか）
+-->
+
 ### 完了済み
 
+- **F-007**: "Clear!!" リザルト画面（クリア版）認識 — ✅ 完了（`experiments/exp_007_clear_result_recognition/`）
+  - ROI全体の1段pHash判定。精度100% (155/155), 0.17ms, 閾値50
+  - GUI統合: `exp_003_gui_recognition_viewer/plugins/clear_result.py`
 - **F-006**: "Work's Over!!" テキスト認識 — ✅ 完了（`experiments/exp_006_works_over_recognition/`）
   - ROI全体の1段pHash判定。精度100% (149/149), 0.20ms, 閾値50
   - GUI統合: `exp_003_gui_recognition_viewer/plugins/works_over.py`
@@ -46,7 +132,7 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 
 ## 技術スタック
 
-- Python 3.11+ / uv
+- Python 3.12+ / uv
 - PySide6 (GUI + 音声再生)
 - OpenCV + ONNX Runtime (認識)
 - pHash (数字・固定テキスト認識) — 汎用OCR不使用
@@ -81,42 +167,38 @@ uv run pytest tests/integration/  # 統合テスト
 uv run pytest                     # 全部
 ```
 
-## サブエージェント活用ルール
+- テストは `tests/` ディレクトリに置く
+- **テスト実行はSubagent（Agentツール）を使う**
+- **テスト結果は `tests/results/` にファイル保存する**
+  - ファイル名：`{管理番号}_test_result.txt`（例：`F-007_test_result.txt`）
+  - 内容：pytestの `-v` 出力をそのまま保存する
 
-### テスト・品質チェックはサブエージェントに委譲する
-- コード変更後の `pytest`, `ruff check`, `mypy --strict` → test-runner サブエージェントに委譲
-- ミニアプリの精度検証バッチ → accuracy-checker サブエージェントに委譲
+## テスト実行ルール（厳守）
+
+```
+★ テスト・品質チェックは必ずサブエージェント（test-runner）を使って実行すること。
+★ メインエージェントが直接 pytest, ruff, mypy を実行してはならない。
+★ コードを変更したら、必ずサブエージェントでテストを実行すること。
+```
+
+### test-runner サブエージェントに委譲する作業
+- `pytest`（ユニットテスト・統合テスト）
+- `ruff check`（リンター）
+- `ruff format --check`（フォーマットチェック）
+- `mypy --strict`（型チェック）
+
+### accuracy-checker サブエージェントに委譲する作業
+- ミニアプリの精度検証バッチ（test_fixturesに対するバッチテスト）
 
 ### サブエージェントに委譲しない作業
 - 要求仕様書・機能設計書の作成（人間の承認が必要）
 - アーキテクチャの設計判断
 - experiments/ への新ファイル作成（メインエージェントが担当）
 
-### 明示的な委譲指示の例
-実装完了後は以下のように指示する:
-- 「test-runner サブエージェントでテストを実行して」
-- 「accuracy-checker で F-004 の精度検証をして」
-```
-
----
-
-## 使い方（Claude Codeでの操作）
-
-### 自動委譲
-`description` に "proactively" と書いてあるので、コード変更後にClaude Codeが自動的にtest-runnerを呼ぶことがあります。ただしClaude はサブエージェントを控えめに使う傾向があるので、どのステップをサブエージェントに委譲するか明示的に指示すると最良の結果が得られます。 
-
-### 明示的な呼び出し（推奨）
-```
-> WaveNumberPlugin の実装が終わったので、test-runner サブエージェントで全テストを実行して
-```
-```
-> accuracy-checker サブエージェントで exp_004 の test_fixtures/wave/ に対する精度検証をして
-```
-
-### 並列実行
-複数のチェックを同時に走らせることもできます:
-```
-> test-runner でユニットテストを実行して、同時に ruff と mypy のチェックもして
+### 実装中のテスト実行タイミング
+- コード変更のたびにtest-runnerを呼ぶ（修正→テスト→修正→テストのサイクル）
+- テストが失敗したらメインエージェントが修正し、再度test-runnerで確認する
+- すべてのテストがパスするまでこのサイクルを繰り返す
 
 ## コーディング規約
 
@@ -148,16 +230,35 @@ salmon-buddy/
 ## 開発の進め方（必ずこの順序で）
 
 ```
-1. 管理番号を発行      → docs/issues/index.md に追記
-2. 要求仕様書を書く    → docs/issues/F-NNN_xxx/requirements.md
-3. 機能設計書を書く    → docs/issues/F-NNN_xxx/design.md
-4. ミニアプリで実装    → experiments/exp_NNN_xxx/
-5. テスト・検証        → ミニアプリREADMEに結果記録
-6. メインアプリに統合  → src/salmon_buddy/
-7. ステータス更新      → docs/issues/index.md を「✅ 完了」に
-```
+--- ステップ1: 調査・計画（通常モード。planモードは使わない） ---
+1. 関連コード・既存設計を調査
+2. 管理番号を決定、要求仕様書・機能設計書の内容を設計
 
-管理番号: `F-NNN`（機能）/ `B-NNN`（バグ）/ `R-NNN`（リファクタリング）
+--- ステップ2: ドキュメント保存（保存完了まで実装に進まない） ---
+3. 管理番号を発行      → docs/issues/index.md に追記
+4. 要求仕様書を書く    → docs/issues/F-NNN_xxx/requirements.md（docs/REQUIREMENTS_STANDARD.md に従う）
+5. 機能設計書を書く    → docs/issues/F-NNN_xxx/design.md（docs/DESIGN_STANDARD.md に従う）
+
+--- ステップ3: レビュー（Subagent + 人） ---
+6. Subagent（Agentツール）でドキュメントレビュー（docs/REVIEW_CRITERIA.md の基準に従う）
+7. ユーザーも同時にレビュー
+
+--- ステップ4: 修正（必要な場合） ---
+※ レビューで問題があればステップ1〜3を繰り返す
+
+--- ステップ5: 引き継ぎ・/clear ---
+8. CLAUDE.md「現在の作業状況 > 作業中」に追記
+9. ユーザーが /clear を実行
+
+--- ステップ6: 実装（/clear後） ---
+10. CLAUDE.md → 仕様書を読んで実装内容を把握
+11. ミニアプリで実装    → experiments/exp_NNN_xxx/
+12. テスト実行          → test-runner サブエージェントで pytest/ruff/mypy を実行（厳守）
+13. 精度検証            → accuracy-checker サブエージェントで検証（必要な場合）
+14. テスト・検証結果    → ミニアプリREADMEに結果記録
+15. メインアプリに統合  → src/salmon_buddy/
+16. ステータス更新      → docs/issues/index.md を「✅ 完了」に
+```
 
 ## ミニアプリの作り方
 

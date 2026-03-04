@@ -58,7 +58,7 @@
 
 | 項目 | 選定 | 備考 |
 |---|---|---|
-| 言語 | Python 3.11+ | CV/ML処理とGUIを統一 |
+| 言語 | Python 3.12+ | CV/ML処理とGUIを統一 |
 | 環境管理 | uv | pyproject.toml ベース、lockfile対応 |
 | GUI | PySide6 (Qt 6) | LGPL、ネイティブ音声再生可能 |
 | 映像入力 | OpenCV (VideoCapture) | OBS仮想カメラ対応。NDIは将来対応 |
@@ -1832,7 +1832,7 @@ python -m tools.export_onnx --weights runs/detect/train/weights/best.pt --format
 Splatoon 3 サーモンラン NEXT WAVE のリアルタイム解析オペレーターアプリ。
 
 ## 技術スタック
-- Python 3.11+ / uv
+- Python 3.12+ / uv
 - PySide6 (GUI)
 - OpenCV + ONNX Runtime (認識)
 - pHash (数字・固定テキスト認識) — 汎用OCR不使用
