@@ -138,7 +138,7 @@ R-NNN   リファクタリング (Refactor) 例: R-001, R-002
 
 各機能について、以下のフローを**厳守**する。**planモードは使わない**（通常モードで調査・計画を行う）。
 
-1. **案件作成** → `docs/issues/{管理番号}_{slug}/` フォルダを作成し、`docs/issues/index.md` に追加する
+1. **案件作成** → `docs/issues/{管理番号}_{slug}/` フォルダを作成し、`docs/issues/index.md` に追加する。`CLAUDE.md`「現在の作業状況」に当該タスクを追加する
 2. **調査・計画** → 通常モードで既存コードを調査し、要求仕様書（`docs/REQUIREMENTS_STANDARD.md` 準拠）と機能設計書（`docs/DESIGN_STANDARD.md` 準拠）を作成または更新する。差し戻し（ステップ7→ステップ2）の場合は、不備のあったドキュメントを修正する（全面書き直しを含む）
 3. **ドキュメント保存** → 要求仕様書を `docs/issues/{案件フォルダ}/requirements.md`、機能設計書を `docs/issues/{案件フォルダ}/design.md` にファイル保存する。**保存が完了するまで実装に進んではならない**
 4. **レビュー（Subagent + 人）** → 保存されたドキュメントをSubagent（Agentツール）でレビューする。ユーザーも同時にレビューする。レビュー実行時は `docs/REVIEW_CRITERIA.md` の基準に従うこと
