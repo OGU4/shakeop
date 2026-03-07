@@ -141,7 +141,11 @@ R-NNN   リファクタリング (Refactor) 例: R-001, R-002
 1. **案件作成** → `docs/issues/{管理番号}_{slug}/` フォルダを作成し、`docs/issues/index.md` にステータス 📋 未着手 で追加する。`CLAUDE.md`「現在の作業状況」に当該タスクを追加する
 2. **調査・計画** → `docs/issues/index.md` のステータスを 📝 仕様作成中 に更新する。通常モードで既存コードを調査し、要求仕様書（`docs/REQUIREMENTS_STANDARD.md` 準拠）と機能設計書（`docs/DESIGN_STANDARD.md` 準拠）を作成または更新する。差し戻し（ステップ7→ステップ2）の場合は、ステータスを 📝 仕様作成中 に戻し、不備のあったドキュメントを修正する（全面書き直しを含む）
 3. **ドキュメント保存** → 要求仕様書を `docs/issues/{案件フォルダ}/requirements.md`、機能設計書を `docs/issues/{案件フォルダ}/design.md` にファイル保存する。差し戻し時は `investigation.md` も保存する。**保存が完了するまで実装に進んではならない**
-4. **レビュー（/review + 人）** → `/review` スラッシュコマンドでレビューを実行する。ユーザーも同時にレビューする。`/review` は `docs/REVIEW_CRITERIA.md` の基準に従い、保存済みの要求仕様書・機能設計書をレビューする。差し戻し時は `investigation.md` もレビュー対象に含める（レビュー基準: `docs/BUGFIX_STANDARD.md` セクション1の必須項目がすべて記載されているか）
+4. **レビュー（/review + 人）** → `/review` スラッシュコマンドでレビューを実行する。引数にはレビュー対象ファイルのパスをスペース区切りで渡す。
+   - investigation.md がない場合: `/review docs/issues/{案件フォルダ}/requirements.md docs/issues/{案件フォルダ}/design.md`
+   - investigation.md がある場合: `/review docs/issues/{案件フォルダ}/requirements.md docs/issues/{案件フォルダ}/design.md docs/issues/{案件フォルダ}/investigation.md`
+
+   ユーザーも同時にレビューする。`/review` は `docs/REVIEW_CRITERIA.md` の基準に従い、保存済みの要求仕様書・機能設計書をレビューする。`investigation.md` が存在する場合はレビュー対象に含める（レビュー基準: `docs/REVIEW_CRITERIA.md` セクション10）
 5. **修正（必要な場合）** → レビューで問題があれば、再調査してドキュメントを更新する。**ステップ2〜4を問題がなくなるまで繰り返す**
 6. **実装** → `docs/issues/index.md` のステータスを 🔬 実装中 に更新する。ドキュメント（要求仕様書・機能設計書・CLAUDE.md）を読んで実装する。ミニアプリ（CLI版 → GUI組み込み）を作成し、テスト作成・実行はCLI版の段階で行う（セクション8のルールに従う）。メインアプリ移植が必要な場合はセクション6.1の統合チェックリストに従う
 7. **手動テスト（実機確認）** → `docs/issues/index.md` のステータスを 🧪 テスト中 に更新する。ユーザーが実機でテストする。テスト観点は以下の通り:
