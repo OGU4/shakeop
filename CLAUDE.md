@@ -10,12 +10,13 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 | ドキュメント | 用途 |
 |---|---|
 | **DEVELOPMENT.md** | 開発方法論・フロー・テスト戦略・Git運用（最上位ルール文書） |
-| **DESIGN.md** | アーキテクチャ設計、認識パイプライン詳細 |
+| **DESIGN.md** | アーキテクチャ設計、認識パイプライン詳細（参考資料） |
 | **docs/game_rules.md** | サーモンランNWのゲームルール（ドメイン知識） |
 | **docs/salmon_run_state_transitions.md** | ゲーム内状態遷移（FSM設計用） |
 | **docs/REQUIREMENTS_STANDARD.md** | 要求仕様書の記述基準 |
 | **docs/DESIGN_STANDARD.md** | 機能設計書の記述基準 |
 | **docs/REVIEW_CRITERIA.md** | 仕様書のレビュー基準 |
+| **docs/BUGFIX_STANDARD.md** | 不具合修正の記述基準（手動テスト差し戻し時） |
 | **docs/issues/index.md** | 全管理番号の一覧と完了状況 |
 
 ## 開発の鉄則
@@ -60,7 +61,7 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 shakeop/
 ├── CLAUDE.md            # ← このファイル
 ├── DEVELOPMENT.md       # 開発方法論（最上位ルール文書）
-├── DESIGN.md            # アーキテクチャ設計
+├── DESIGN.md            # アーキテクチャ設計（参考資料）
 ├── src/salmon_buddy/    # メインアプリ
 ├── shared/salmon_types/ # 共通の型定義（Protocol, dataclass, Enum）
 ├── shared/recognition/  # 共通の認識ユーティリティ（pHash等）
@@ -81,7 +82,7 @@ shakeop/
 - ゲーム状態はFSMで管理、Qt Signal/Slot でGUI/音声に伝播
 - すべてのROI座標はFHD (1920x1080) 基準
 - ONNXモデルはCPU推論前提（GPU不要）
-- 詳細は DESIGN.md を参照
+- 初期構想の詳細は DESIGN.md を参照（参考資料。実装時は各機能の設計書を正とする）
 
 ## 用語集
 
