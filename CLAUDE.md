@@ -10,7 +10,6 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 | ドキュメント | 用途 |
 |---|---|
 | **DEVELOPMENT.md** | 開発方法論・フロー・テスト戦略・Git運用（最上位ルール文書） |
-| **DESIGN.md** | アーキテクチャ設計、認識パイプライン詳細（参考資料） |
 | **docs/game_rules.md** | サーモンランNWのゲームルール（ドメイン知識） |
 | **docs/salmon_run_state_transitions.md** | ゲーム内状態遷移（FSM設計用） |
 | **docs/REQUIREMENTS_STANDARD.md** | 要求仕様書の記述基準 |
