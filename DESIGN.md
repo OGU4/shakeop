@@ -1539,25 +1539,7 @@ python -m tools.export_onnx --weights runs/detect/train/weights/best.pt --format
 
 ## 9. クロスプラットフォーム対応メモ
 
-### Windows
-
-- OBS仮想カメラ: DirectShow backend (`cv2.VideoCapture(index, cv2.CAP_DSHOW)`)
-- ONNX Runtime: `onnxruntime` パッケージ（GPU版は `onnxruntime-directml`）
-- 配布: PyInstaller で .exe + フォルダ一式 or Inno Setup でインストーラー
-
-### Linux
-
-- OBS仮想カメラ: V4L2 backend（`v4l2loopback` モジュール必要）
-- ONNX Runtime: `onnxruntime`
-- PySide6: `libxcb` 等のシステムライブラリ依存あり
-- 配布: AppImage or Flatpak
-
-### 共通注意点
-
-- `Path` を使い、パス区切り文字をハードコードしない
-- カメラデバイス列挙方法がOS間で異なる（抽象化する）
-- QSoundEffect は `.wav` のみ対応（mp3不可）。44.1kHz/16bit PCM推奨
-- 設定ファイルの保存場所: `QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)`
+`docs/TECH_STACK.md` を参照。
 
 ---
 
