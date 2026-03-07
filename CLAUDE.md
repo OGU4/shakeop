@@ -34,7 +34,8 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 （なし）
 
 <!-- 作業中タスクのテンプレート:
-- **F-NNN**: タスク名 — 🔬 実装中
+ステータス凡例: 📋 未着手 / 📝 仕様作成中 / 🔬 実装中 / 🧪 テスト中
+- **F-NNN**: タスク名 — {ステータス}
   - 要求仕様書: `docs/issues/F-NNN_xxx/requirements.md`
   - 機能設計書: `docs/issues/F-NNN_xxx/design.md`
   - 実装先: `experiments/exp_NNN_xxx/`
