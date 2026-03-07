@@ -98,7 +98,6 @@
 - 却下案とその理由
 を簡潔に記録する（ADR: Architecture Decision Recordの簡易版）
 これにより、Claude Codeが別の方法に変えてしまうことを防ぐ。
-```
 
 ---
 
