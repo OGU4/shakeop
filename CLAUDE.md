@@ -51,10 +51,10 @@ Splatoon 3「サーモンラン NEXT WAVE」のリアルタイム解析オペレ
 ## 技術スタック
 
 - Python 3.12+ / uv
-- PySide6 (GUI + 音声再生)
-- OpenCV + ONNX Runtime (認識)
+- PySide6 (GUI、音声再生は将来実装予定)
+- OpenCV (画像処理・ビデオキャプチャ)
 - pHash (数字・固定テキスト認識) — 汎用OCR不使用
-- QSoundEffect (音声)
+- ONNX Runtime (将来使用予定: Scene分類・Object検出)
 - ライセンス: MIT
 
 ## リポジトリ構成
@@ -77,7 +77,7 @@ shakeop/
 
 ## 重要な設計判断
 
-- 認識パイプラインは5段構成: Scene分類 → Object検出 → Digit認識(pHash) → Text識別(pHash) → Feature Match
+- 認識パイプラインは5段構成で設計: Scene分類 → Object検出 → Digit認識(pHash) → Text識別(pHash) → Feature Match（現時点で実装済みなのは Digit認識・Text識別のみ）
 - 数字・固定テキスト認識にはpHash（パーセプチュアルハッシュ）を使用
   - 汎用OCRはゲーム画面（独自フォント・動く背景・透過・斜め配置）に不向きと判明済み
 - ゲーム状態はFSMで管理、Qt Signal/Slot でGUI/音声に伝播
@@ -92,4 +92,4 @@ shakeop/
 | サーモンランNW | Splatoon 3のゲームモード「サーモンラン NEXT WAVE」の略称 |
 | バイト | サーモンランNWのゲームをプレイすること |
 | バイトの時間です | マッチング完了後、ゲーム開始前に表示される固定テキスト |
-| Wave | バイト内の区切り。準備時間(10カウント)＋本番(100カウント)＋休憩で構成。通常Wave1〜3＋Extra Wave。バイトチームコンテストではWave1〜5 |
+| Wave | バイト内の区切り。通常のWaveは準備時間(10カウント)＋本番(100カウント)＋休憩で構成。通常バイトはWave 1〜3の3本構成。Wave 3クリア後、条件を満たすとExtra Waveが発生する（Extra Waveには準備時間がない）。不定期開催のバイトチームコンテストではWave 1〜5の5本構成（Extra Waveなし） |

@@ -82,7 +82,7 @@
 | pHashサイズ | 16x16 (256bit, DCTベース) を標準とする。新規実装で8x8は使用しない | R-001, F-004以降の設計書 |
 | テンプレート保存形式 | NumPy `.npy` ファイル（uint8, shape=(32,)）。コード内へのハッシュ値インライン記述は禁止 | F-004〜F-007 設計書 |
 | 推論環境 | CPU推論前提（GPU非搭載PCでも動作可能にする） | CLAUDE.md |
-| 音声形式 | QSoundEffect は `.wav` のみ対応（mp3不可）。44.1kHz/16bit PCM推奨 | CLAUDE.md |
+| 音声形式 | QSoundEffect は `.wav` のみ対応（mp3不可）。44.1kHz/16bit PCM推奨（将来の音声機能実装時に適用） | PySide6 公式ドキュメント |
 
 ### 不整合事項
 
